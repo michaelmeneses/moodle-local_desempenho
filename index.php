@@ -20,6 +20,7 @@ if ($courseid) {
 } else {
     $course = null;
     $context = context_system::instance();
+    require_login();
     $PAGE->set_pagelayout('report');
 }
 

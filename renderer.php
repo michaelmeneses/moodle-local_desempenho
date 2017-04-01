@@ -31,8 +31,16 @@ class local_desempenho_renderer extends plugin_renderer_base
     {
         $content = '';
 
-        $data = $this->indicator_grade_quiz();
-        $content .= $this->get_chart('bar', $data);
+        if ($this->course) {
+            $data = $this->indicator_grade_quiz();
+            $content .= $this->get_chart('bar', $data);
+        } else {
+            $content .= html_writer::tag('p',get_string('selectacourse'));
+            $courses = enrol_get_my_courses();
+            foreach ($courses as $course) {
+                $content .= html_writer::link(new moodle_url('/local/desempenho/index.php', ['courseid' => $course->id]), $course->fullname);
+            }
+        }
 
         return html_writer::tag('div',$content, ['class' => 'desempenho']);
     }
@@ -97,8 +105,13 @@ class local_desempenho_renderer extends plugin_renderer_base
         $modules = $DB->get_records('course_modules', ['course' => $this->course->id, 'module' => $mod->id]);
         foreach ($modules as $module) {
             $grade_item = $DB->get_record('grade_items', ['itemmodule' => 'quiz', 'iteminstance' => $module->instance]);
-            $grade = $DB->get_record('grade_grades', ['userid' => 75, 'itemid' => $grade_item->id]);
-            $data['series'][] = array('name' => $grade_item->itemname, 'values' => [($grade->finalgrade / $grade_item->grademax * 100)]);
+            $grade = $DB->get_record('grade_grades', ['userid' => $USER->id, 'itemid' => $grade_item->id]);
+            $finalgrade = 0;
+            if (isset($grade_item->finalgrade)) {
+                $finalgrade = $grade_item->finalgrade;
+            }
+            $value = ($finalgrade / $grade_item->grademax * 100);
+            $data['series'][] = array('name' => $grade_item->itemname, 'values' => [$value]);
         }
 
         return $data;
