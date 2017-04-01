@@ -21,7 +21,7 @@ function local_desempenho_extend_navigation(global_navigation $navigation) {
     $node_course = $navigation->add_course($COURSE);
     $node = navigation_node::create(
         get_string('myperformance','local_desempenho'),
-        new moodle_url('/local/desempenho/index.php', ['id' => $PAGE->course->id]),
+        new moodle_url('/local/desempenho/index.php', ['courseid' => $PAGE->course->id]),
             navigation_node::TYPE_CUSTOM,
             'desempenho',
             'desempenho',
