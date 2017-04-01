@@ -31,26 +31,8 @@ class local_desempenho_renderer extends plugin_renderer_base
     {
         $content = '';
 
-        $data = $this->indicator_test_bar();
+        $data = $this->indicator_grade_quiz();
         $content .= $this->get_chart('bar', $data);
-
-        $data = $this->indicator_test_bar();
-        $content .= $this->get_chart('bar', $data, ['bar_horizontal' => true]);
-
-        $data = $this->indicator_test_bar();
-        $content .= $this->get_chart('bar', $data, ['bar_stacked' => true]);
-
-        $data = $this->indicator_test_line();
-        $content .= $this->get_chart('line', $data);
-
-        $data = $this->indicator_test_line_smooth();
-        $content .= $this->get_chart('line', $data, ['line_smooth' => true]);
-
-        $data = $this->indicator_test_pie();
-        $content .= $this->get_chart('pie', $data);
-
-        $data = $this->indicator_test_doughnut();
-        $content .= $this->get_chart('pie', $data, ['pie_doughnut' => true]);
 
         return html_writer::tag('div',$content, ['class' => 'desempenho']);
     }
@@ -99,7 +81,7 @@ class local_desempenho_renderer extends plugin_renderer_base
         return html_writer::tag('div', $output, ['class' => 'desempenho_chart']);
     }
 
-    function indicator_test_bar()
+    function indicator_grade_quiz()
     {
         global $DB, $USER;
 
@@ -108,85 +90,16 @@ class local_desempenho_renderer extends plugin_renderer_base
         }
 
         $data = array();
-        $data['title'] = "BAR CHART";
-        $data['labels'] = ['A','B','C'];
-        $data['series'] = array(
-            ["name" => "Ref 1", "values" => [150,280,310]],
-            ["name" => "Ref 2", "values" => [160,290,320]],
-            ["name" => "Ref 3", "values" => [170,200,330]]
-        );
+        $data['title'] = get_string('pluginname','mod_quiz');
+        $data['labels'] = [get_string('pluginname','mod_quiz')];
 
-        return $data;
-    }
-
-    function indicator_test_line()
-    {
-        global $DB, $USER;
-
-        if (is_null($this->course)){
-            return $this->course;
+        $mod = $DB->get_record('modules', ['name' => 'quiz']);
+        $modules = $DB->get_records('course_modules', ['course' => $this->course->id, 'module' => $mod->id]);
+        foreach ($modules as $module) {
+            $grade_item = $DB->get_record('grade_items', ['itemmodule' => 'quiz', 'iteminstance' => $module->instance]);
+            $grade = $DB->get_record('grade_grades', ['userid' => 75, 'itemid' => $grade_item->id]);
+            $data['series'][] = array('name' => $grade_item->itemname, 'values' => [($grade->finalgrade / $grade_item->grademax * 100)]);
         }
-
-        $data = array();
-        $data['title'] = "LINE CHART";
-        $data['labels'] = ['A','B','C'];
-        $data['series'] = array(
-            ["name" => "Ref 1", "values" => [150,280,310]],
-            ["name" => "Ref 2", "values" => [160,290,320]],
-            ["name" => "Ref 3", "values" => [170,200,330]]
-        );
-
-        return $data;
-    }
-
-    function indicator_test_line_smooth()
-    {
-        global $DB, $USER;
-
-        if (is_null($this->course)){
-            return $this->course;
-        }
-
-        $data = array();
-        $data['title'] = "LINE CHART";
-        $data['labels'] = ['A','B','C'];
-        $data['series'] = array(
-            ["name" => "Ref 1", "values" => [150,280,310]],
-            ["name" => "Ref 2", "values" => [160,290,320]],
-            ["name" => "Ref 3", "values" => [170,200,330]]
-        );
-
-        return $data;
-    }
-
-    function indicator_test_pie()
-    {
-        global $DB, $USER;
-
-        if (is_null($this->course)){
-            return $this->course;
-        }
-
-        $data = array();
-        $data['title'] = "PIE CHART";
-        $data['labels'] = ['A','B','C'];
-        $data['series'] = array("name" => "Ref", "values" => [15,25,60]);
-
-        return $data;
-    }
-
-    function indicator_test_doughnut()
-    {
-        global $DB, $USER;
-
-        if (is_null($this->course)){
-            return $this->course;
-        }
-
-        $data = array();
-        $data['title'] = "DOUGHNUT CHART";
-        $data['labels'] = ['A','B','C'];
-        $data['series'] = array("name" => "Ref", "values" => [15,25,60]);
 
         return $data;
     }
