@@ -52,6 +52,11 @@ function local_desempenho_extend_settings_navigation($settingsnav, $context) {
         if ($PAGE->url->compare($url, URL_MATCH_BASE)) {
             $node->make_active();
         }
-        $settingnode->add_node($node, 'editsettings');
+        $children = $settingnode->get_children_key_list();
+        if ($children) {
+            $settingnode->add_node($node, $children[0]);
+        } else {
+            $settingnode->add_node($node);
+        }
     }
 }
