@@ -29,11 +29,23 @@ class local_desempenho_renderer extends plugin_renderer_base
 
     function content()
     {
+        global $OUTPUT;
+
         $content = '';
 
         if ($this->course) {
             $data = $this->indicator_grade_quiz();
-            $content .= $this->get_chart('bar', $data);
+            $chart = $this->get_chart('bar', $data);
+            $tabs['tabs'][] = array('name' => "gradequiz_bar", 'displayname' => $data['title'], 'html' => $chart, 'active' => true);
+
+            $data = $this->indicator_grade_quiz();
+            $chart = $this->get_chart('bar', $data, ['bar_horizontal' => true]);
+            $tabs['tabs'][] = array('name' => "gradequiz_barhorizontal", 'displayname' => $data['title'], 'html' => $chart, 'active' => false);
+
+            $content .= $OUTPUT->render_from_template('theme_boost/admin_setting_tabs', $tabs);
+
+            return $content;
+
         } else {
             $content .= html_writer::tag('p',get_string('selectacourse'));
             $courses = enrol_get_my_courses();
@@ -107,8 +119,8 @@ class local_desempenho_renderer extends plugin_renderer_base
             $grade_item = $DB->get_record('grade_items', ['itemmodule' => 'quiz', 'iteminstance' => $module->instance]);
             $grade = $DB->get_record('grade_grades', ['userid' => $USER->id, 'itemid' => $grade_item->id]);
             $finalgrade = 0;
-            if (isset($grade_item->finalgrade)) {
-                $finalgrade = $grade_item->finalgrade;
+            if (isset($grade->finalgrade)) {
+                $finalgrade = $grade->finalgrade;
             }
             $value = ($finalgrade / $grade_item->grademax * 100);
             $data['series'][] = array('name' => $grade_item->itemname, 'values' => [$value]);
