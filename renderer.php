@@ -32,30 +32,41 @@ class local_desempenho_renderer extends plugin_renderer_base
         global $OUTPUT;
 
         $content = '';
+        $courseidsimulado = get_config('local_desempenho', 'courseidsimulado');
 
+        $tabs = array();
+        $active = true;
         if ($this->course) {
-            $data = $this->indicator_grade_simulado();
-            $chart = $this->get_chart('line', $data);
-            $tabs['tabs'][] = array('name' => "gradesimulado_line", 'displayname' => $data['title'], 'html' => $chart, 'active' => true);
-
-            $data = $this->indicator_grade_quiz();
-            $chart = $this->get_chart('bar', $data);
-            $tabs['tabs'][] = array('name' => "gradequiz_bar", 'displayname' => $data['title'], 'html' => $chart, 'active' => false);
-
-            $data = $this->indicator_grade_quiz_this();
-            $chart = $this->get_chart('line', $data);
-            $tabs['tabs'][] = array('name' => "gradequiz_line", 'displayname' => $data['title'], 'html' => $chart, 'active' => false);
+            if ($this->course->id != $courseidsimulado) {
+                $data = $this->indicator_grade_simulado();
+                $chart = $this->get_chart('line', $data);
+                $tabs['tabs'][] = array('name' => "gradesimulado_line", 'displayname' => $data['title'], 'html' => $chart, 'active' => $active);
+                $active = false;
+            }
+            if ($this->course) {
+                $data = $this->indicator_grade_quiz();
+                $chart1 = $this->get_chart('bar', $data);
+                $data = $this->indicator_grade_quiz_this();
+                $chart2 = $this->get_chart('line', $data);
+                $tabs['tabs'][] = array('name' => "gradequiz_line", 'displayname' => $data['title'], 'html' => $chart1 . $chart2, 'active' => $active);
+                $active = false;
+            }
 
             $content .= $OUTPUT->render_from_template('theme_boost/admin_setting_tabs', $tabs);
-
-            return $content;
-
         } else {
             $content .= html_writer::tag('p',get_string('selectacourse'));
             $courses = enrol_get_my_courses();
             foreach ($courses as $course) {
-                $content .= html_writer::link(new moodle_url('/local/desempenho/index.php', ['courseid' => $course->id]), $course->fullname);
+                $link = html_writer::link(new moodle_url('/local/desempenho/index.php', ['courseid' => $course->id]), $course->fullname);
+                $content .= html_writer::tag('h5', $link);
             }
+
+            $data = $this->indicator_grade_simulado();
+            $chart = $this->get_chart('line', $data);
+            $tabs['tabs'][] = array('name' => "gradesimulado_line", 'displayname' => $data['title'], 'html' => $chart, 'active' => $active);
+            $active = false;
+
+            $content .= $OUTPUT->render_from_template('theme_boost/admin_setting_tabs', $tabs);
         }
 
         return html_writer::tag('div',$content, ['class' => 'desempenho']);
