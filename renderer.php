@@ -239,7 +239,7 @@ class local_desempenho_renderer extends plugin_renderer_base
             }
             $media[] = number_format($n, 2);
         }
-        $items[get_string('overallaverage', 'grades')] = $media;
+        $items[get_string('classaverage', 'local_desempenho')] = $media;
 
         if (count($items)) {
             foreach ($items as $key => $item) {
@@ -356,7 +356,7 @@ class local_desempenho_renderer extends plugin_renderer_base
             }
             $media[] = number_format($n, 2);
         }
-        $items[get_string('overallaverage', 'grades')] = $media;
+        $items[get_string('classaverage', 'local_desempenho')] = $media;
 
         if (count($items)) {
             foreach ($items as $key => $item) {

@@ -11,3 +11,4 @@
 // Admin settings language
 $string['pluginname'] = 'Performance';
 $string['myperformance'] = 'My Performance';
+$string['classaverage'] = 'Class average';
