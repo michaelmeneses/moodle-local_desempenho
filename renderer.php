@@ -80,6 +80,11 @@ class local_desempenho_renderer extends plugin_renderer_base
             return '';
         }
 
+        $output = '';
+        if (isset($data['info'])) {
+            $output .= html_writer::tag('p', $data['info'], ['class' => 'info']);
+        }
+
         $class = "core\\chart_$type";
         $chart = new $class();
 
@@ -115,7 +120,7 @@ class local_desempenho_renderer extends plugin_renderer_base
             $chart->add_series($serie);
 
         }
-        $output = $OUTPUT->render($chart, false);
+        $output .= $OUTPUT->render($chart, false);
 
         return html_writer::tag('div', $output, ['class' => 'desempenho_chart']);
     }
@@ -134,6 +139,7 @@ class local_desempenho_renderer extends plugin_renderer_base
         $items = array();
         $data = array();
         $data['title'] = $course->fullname;
+        $data['info'] = "Esse indicador apresenta resultados dos questionários do curso ". $course->fullname.".";
 
         $mod = $DB->get_record('modules', ['name' => 'quiz']);
         $modules = $DB->get_records('course_modules', ['course' => $course->id, 'module' => $mod->id, 'visible' => 1]);
