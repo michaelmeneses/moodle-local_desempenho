@@ -76,6 +76,10 @@ class local_desempenho_renderer extends plugin_renderer_base
     {
         global $OUTPUT;
 
+        if (is_null($data)){
+            return '';
+        }
+
         $class = "core\\chart_$type";
         $chart = new $class();
 
@@ -132,7 +136,10 @@ class local_desempenho_renderer extends plugin_renderer_base
         $data['title'] = $course->fullname;
 
         $mod = $DB->get_record('modules', ['name' => 'quiz']);
-        $modules = $DB->get_records('course_modules', ['course' => $course->id, 'module' => $mod->id]);
+        $modules = $DB->get_records('course_modules', ['course' => $course->id, 'module' => $mod->id, 'visible' => 1]);
+        if (count($modules) == 0) {
+            return null;
+        }
         foreach ($modules as $module) {
             $grade_item = $DB->get_record('grade_items', ['itemmodule' => 'quiz', 'iteminstance' => $module->instance]);
             $grade = $DB->get_record('grade_grades', ['userid' => $USER->id, 'itemid' => $grade_item->id]);
@@ -171,12 +178,15 @@ class local_desempenho_renderer extends plugin_renderer_base
         $sql = "SELECT g.itemid, SUM(g.finalgrade) AS sum, gi.grademax as grademax
                       FROM {grade_items} gi
                       JOIN {grade_grades} g ON g.itemid = gi.id
+                      JOIN {course_modules} cm ON cm.instance = (SELECT id FROM {quiz} q WHERE q.id = gi.iteminstance)
+                                               AND cm.module =  (SELECT id FROM {modules} m WHERE m.name like 'quiz')
                       JOIN {user} u ON u.id = g.userid
                      WHERE gi.courseid = :courseid
                        AND u.deleted = 0
                        AND g.finalgrade IS NOT NULL
                        AND gi.itemtype like 'mod'
                        AND gi.itemmodule like 'quiz'
+                       AND cm.visible = 1
                      GROUP BY g.itemid";
         $sumarray = array();
         if ($sums = $DB->get_records_sql($sql, $params)) {
@@ -195,11 +205,14 @@ class local_desempenho_renderer extends plugin_renderer_base
                            ON ra.userid = u.id
                       LEFT OUTER JOIN {grade_grades} g
                            ON (g.itemid = gi.id AND g.userid = u.id AND g.finalgrade IS NOT NULL)
+                       JOIN {course_modules} cm ON cm.instance = (SELECT id FROM {quiz} q WHERE q.id = gi.iteminstance)
+                                           AND cm.module =  (SELECT id FROM {modules} m WHERE m.name like 'quiz')
                      WHERE gi.courseid = :courseid
                            AND u.deleted = 0
                            AND g.id IS NULL
                            AND gi.itemtype like 'mod'
                            AND gi.itemmodule like 'quiz'
+                           AND cm.visible = 1
                   GROUP BY gi.id";
         $ungradedcounts = $DB->get_records_sql($sql, $params);
 
@@ -247,6 +260,9 @@ class local_desempenho_renderer extends plugin_renderer_base
 
         $mod = $DB->get_record('modules', ['name' => 'quiz']);
         $modules = $DB->get_records('course_modules', ['course' => $course->id, 'module' => $mod->id]);
+        if (count($modules) == 0) {
+            return null;
+        }
         foreach ($modules as $module) {
             $grade_item = $DB->get_record('grade_items', ['itemmodule' => 'quiz', 'iteminstance' => $module->instance]);
             $grade = $DB->get_record('grade_grades', ['userid' => $USER->id, 'itemid' => $grade_item->id]);
@@ -360,6 +376,9 @@ class local_desempenho_renderer extends plugin_renderer_base
 
         $mod = $DB->get_record('modules', ['name' => 'quiz']);
         $modules = $DB->get_records('course_modules', ['course' => $this->course->id, 'module' => $mod->id]);
+        if (count($modules) == 0) {
+            return null;
+        }
         foreach ($modules as $module) {
             $grade_item = $DB->get_record('grade_items', ['itemmodule' => 'quiz', 'iteminstance' => $module->instance]);
             $grade = $DB->get_record('grade_grades', ['userid' => $USER->id, 'itemid' => $grade_item->id]);
