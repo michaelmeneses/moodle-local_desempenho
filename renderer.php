@@ -136,7 +136,19 @@ class local_desempenho_renderer extends plugin_renderer_base
 
         $data = array();
         $data['title'] = $course->fullname;
-        $data['info'] = "Esse indicador apresenta resultados dos questionários do curso ". $course->fullname.".";
+        $data['info'] = html_writer::tag('p', "Esse indicador apresenta resultados dos questionários do curso ". $course->fullname.".");
+        if ($items = get_grade_quiz_ranking($course)) {
+            $data['info'] .= html_writer::tag('h4', "RANKING");
+            $table = new html_table();
+            $table->head = array("Questionário", "Posição");
+            $table->data = array();
+            foreach ($items as $key => $value) {
+                $v = is_null($value) ? '-' : $value."º";
+                $row = [$key , $v];
+                $table->data[] = $row;
+            }
+            $data['info'] .= html_writer::table($table);
+        }
 
         $result = get_grade_quiz_average($course);
         $data['labels'] = $result['labels'];
@@ -162,6 +174,19 @@ class local_desempenho_renderer extends plugin_renderer_base
     {
         $data = array();
         $data['title'] = get_string('pluginname','mod_quiz') . "s em " . $this->course->fullname;
+        $data['info'] = html_writer::tag('p', "Esse indicador apresenta resultados dos questionários do curso ". $course->fullname.".");
+        if ($items = get_grade_quiz_ranking($course)) {
+            $data['info'] .= html_writer::tag('h4', "RANKING");
+            $table = new html_table();
+            $table->head = array("Questionário", "Posição");
+            $table->data = array();
+            foreach ($items as $key => $value) {
+                $v = is_null($value) ? '-' : $value."º";
+                $row = [$key , $v];
+                $table->data[] = $row;
+            }
+            $data['info'] .= html_writer::table($table);
+        }
         $data['labels'] = [get_string('pluginname','mod_quiz')];
         $data['series'] = get_grade_quiz($course);
 
