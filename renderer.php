@@ -370,8 +370,6 @@ class local_desempenho_renderer extends plugin_renderer_base
 
     function indicator_grade_quiz()
     {
-        global $DB, $USER;
-
         if (is_null($this->course)){
             return $this->course;
         }
@@ -380,21 +378,7 @@ class local_desempenho_renderer extends plugin_renderer_base
         $data['title'] = get_string('pluginname','mod_quiz') . "s em " . $this->course->fullname;
         $data['labels'] = [get_string('pluginname','mod_quiz')];
 
-        $mod = $DB->get_record('modules', ['name' => 'quiz']);
-        $modules = $DB->get_records('course_modules', ['course' => $this->course->id, 'module' => $mod->id]);
-        if (count($modules) == 0) {
-            return null;
-        }
-        foreach ($modules as $module) {
-            $grade_item = $DB->get_record('grade_items', ['itemmodule' => 'quiz', 'iteminstance' => $module->instance]);
-            $grade = $DB->get_record('grade_grades', ['userid' => $USER->id, 'itemid' => $grade_item->id]);
-            $finalgrade = 0;
-            if (isset($grade->finalgrade)) {
-                $finalgrade = $grade->finalgrade;
-            }
-            $value = ($finalgrade / $grade_item->grademax * 100);
-            $data['series'][] = array('name' => $grade_item->itemname, 'values' => [$value]);
-        }
+        $data['series'] = get_grade_quiz($this->course);
 
         return $data;
     }

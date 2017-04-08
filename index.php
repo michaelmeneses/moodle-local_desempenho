@@ -9,6 +9,7 @@
  */
 
 require_once('../../config.php');
+require_once($CFG->dirroot .'/local/desempenho/locallib.php');
 
 $courseid = optional_param('courseid', 0, PARAM_INT);
 
