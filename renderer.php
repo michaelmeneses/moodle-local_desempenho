@@ -173,7 +173,7 @@ class local_desempenho_renderer extends plugin_renderer_base
     function indicator_grade_quiz($course)
     {
         $data = array();
-        $data['title'] = get_string('pluginname','mod_quiz') . "s em " . $this->course->fullname;
+        $data['title'] = get_string('pluginname','mod_quiz') . "s em " . $this->course->fullname." (em %)";
         $data['info'] = html_writer::tag('p', "Esse indicador apresenta resultados dos questionários do curso ". $course->fullname.".");
         if ($items = get_grade_quiz_ranking($course)) {
             $data['info'] .= html_writer::tag('h4', "RANKING");

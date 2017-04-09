@@ -144,18 +144,15 @@ function get_grade_quiz_ranking($course) {
 
     $data = array();
 
-    $sql = "SELECT * FROM {course_modules} WHERE course = :courseid AND visible = 1 AND module = (SELECT id FROM {modules} WHERE name like 'quiz')";
+    $sql = "SELECT cm.id, cm.instance FROM {course_modules} cm WHERE course = :courseid AND visible = 1 AND module = (SELECT id FROM {modules} WHERE name like 'quiz')";
     $cms = $DB->get_records_sql($sql, ['courseid' => $course->id]);
 
-    if (count($cms)) {
+    if (!is_null($cms)) {
         foreach ($cms as $cm) {
             $aux = get_ranking_by_cm($course, $cm->instance);
             foreach ($aux as $key => $value) {
                 if ($value->userid == $USER->id) {
                     $data[$value->name] = array_search($key, array_keys($aux)) + 1;
-                }
-                if (is_null($value->finalgrade)) {
-                    $data[$value->name] = null;
                 }
             }
         }
@@ -170,7 +167,7 @@ function get_ranking_by_cm($course, $cmid) {
 
     $sql = "SELECT gg.id, gi.itemname as name, gi.iteminstance, gg.userid, gg.finalgrade FROM {grade_grades} gg
             INNER JOIN {grade_items} gi ON gg.itemid = gi.id
-            INNER JOIN {course_modules} cm  ON cm.id = gi.iteminstance
+            INNER JOIN {course_modules} cm  ON cm.instance = gi.iteminstance AND cm.module = (SELECT id FROM {modules} WHERE name = 'quiz')
             INNER JOIN {user} u  ON u.id = gg.userid
             WHERE cm.visible = 1 AND gi.itemmodule = 'quiz' AND gi.courseid = :courseid AND gi.iteminstance = :iteminstance
             ORDER BY gi.iteminstance, gg.finalgrade DESC, u.firstname, u.lastname;";
