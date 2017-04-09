@@ -61,7 +61,7 @@ class local_desempenho_renderer extends plugin_renderer_base
                 $content .= html_writer::tag('h5', $link);
             }
 
-            $data = $this->indicator_grade_simulado();
+            $data = $this->indicator_grade_quiz_average_simulado();
             $chart = $this->get_chart('line', $data);
             $tabs['tabs'][] = array('name' => "gradesimulado_line", 'displayname' => $data['title'], 'html' => $chart, 'active' => $active);
             $active = false;
