@@ -39,7 +39,7 @@ function get_grade_quiz_average($course) {
     $items = array();
 
     $mod = $DB->get_record('modules', ['name' => 'quiz']);
-    $modules = $DB->get_records('course_modules', ['course' => $course->id, 'module' => $mod->id]);
+    $modules = $DB->get_records('course_modules', ['course' => $course->id, 'module' => $mod->id, 'visible' => 1]);
     if (count($modules) == 0) {
         return null;
     }
@@ -77,11 +77,13 @@ function get_grade_quiz_average($course) {
             FROM {grade_items} gi
             JOIN {grade_grades} g ON g.itemid = gi.id
             JOIN {user} u ON u.id = g.userid
+            JOIN {course_modules} cm ON cm.instance = gi.iteminstance AND cm.module = (SELECT id FROM {modules} WHERE name like 'quiz')
             WHERE gi.courseid = :courseid
               AND u.deleted = 0
               AND g.finalgrade IS NOT NULL
               AND gi.itemtype like 'mod'
               AND gi.itemmodule like 'quiz'
+              AND cm.visible = 1
               GROUP BY g.itemid";
     $sumarray = array();
     if ($sums = $DB->get_records_sql($sql, $params)) {
@@ -93,6 +95,7 @@ function get_grade_quiz_average($course) {
     // This query returns a count of ungraded grades (NULL finalgrade OR no matching record in grade_grades table)
     $sql = "SELECT gi.id, COUNT(DISTINCT u.id) AS count
                       FROM {grade_items} gi
+                      JOIN {course_modules} cm ON cm.instance = gi.iteminstance AND cm.module = (SELECT id FROM {modules} WHERE name like 'quiz')
                       CROSS JOIN {user} u
                       JOIN ($enrolledsql) je
                            ON je.id = u.id
@@ -105,6 +108,7 @@ function get_grade_quiz_average($course) {
                            AND g.id IS NULL
                            AND gi.itemtype like 'mod'
                            AND gi.itemmodule like 'quiz'
+                           AND cm.visible = 1
                   GROUP BY gi.id";
     $ungradedcounts = $DB->get_records_sql($sql, $params);
 
