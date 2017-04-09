@@ -39,16 +39,23 @@ class local_desempenho_renderer extends plugin_renderer_base
         if ($this->course) {
             if ($this->course->id != $courseidsimulado) {
                 $data = $this->indicator_grade_quiz_average_simulado();
-                $chart = $this->get_chart('line', $data);
-                $tabs['tabs'][] = array('name' => "gradesimulado_line", 'displayname' => $data['title'], 'html' => $chart, 'active' => $active);
-                $active = false;
+                if ($data) {
+                    $chart = $this->get_chart('line', $data);
+                    $tabs['tabs'][] = array('name' => "gradesimulado_line", 'displayname' => $data['title'], 'html' => $chart, 'active' => $active);
+                    $active = false;
+                }
             }
             if ($this->course) {
-                $data = $this->indicator_grade_quiz($this->course);
-                $chart1 = $this->get_chart('bar', $data);
-                $data = $this->indicator_grade_quiz_average($this->course);
-                $chart2 = $this->get_chart('line', $data);
-                $tabs['tabs'][] = array('name' => "gradequiz_line", 'displayname' => $data['title'], 'html' => $chart1 . $chart2, 'active' => $active);
+                $data1 = $this->indicator_grade_quiz($this->course);
+                $output = '';
+                if ($data1) {
+                    $output .= $this->get_chart('bar', $data);
+                }
+                $data2 = $this->indicator_grade_quiz_average($this->course);
+                if ($data2) {
+                    $output .= $this->get_chart('line', $data);
+                }
+                $tabs['tabs'][] = array('name' => "gradequiz_line", 'displayname' => $data['title'], 'html' => $output, 'active' => $active);
                 $active = false;
             }
 
