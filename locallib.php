@@ -162,10 +162,15 @@ function get_grade_quiz_ranking($course) {
     if (!is_null($cms)) {
         foreach ($cms as $cm) {
             $aux = get_ranking_by_cm($course, $cm->instance);
-            $total = count($aux);
+            $total = count(get_ranking_by_cm($course, $cm->instance, true));
             foreach ($aux as $key => $value) {
                 if ($value->userid == $USER->id) {
-                    $data[$value->name] = ['user' => array_search($key, array_keys($aux)) + 1 , 'total' => $total];
+                    $pos = array_search($key, array_keys($aux)) + 1;
+                    if ($pos > $total) {
+                        $data[$value->name] = ['user' => null, 'total' => $total];
+                    } else {
+                        $data[$value->name] = ['user' => $pos, 'total' => $total];
+                    }
                 }
             }
         }
@@ -175,14 +180,19 @@ function get_grade_quiz_ranking($course) {
 
 }
 
-function get_ranking_by_cm($course, $cmid) {
+function get_ranking_by_cm($course, $cmid, $notnull = false) {
     global $DB;
+
+    $sqlwhere = '';
+    if ($notnull) {
+        $sqlwhere .= " AND gg.finalgrade IS NOT NULL ";
+    }
 
     $sql = "SELECT gg.id, gi.itemname as name, gi.iteminstance, gg.userid, gg.finalgrade FROM {grade_grades} gg
             INNER JOIN {grade_items} gi ON gg.itemid = gi.id
             INNER JOIN {course_modules} cm  ON cm.instance = gi.iteminstance AND cm.module = (SELECT id FROM {modules} WHERE name = 'quiz')
             INNER JOIN {user} u  ON u.id = gg.userid
-            WHERE cm.visible = 1 AND gi.itemmodule = 'quiz' AND gi.courseid = :courseid AND gi.iteminstance = :iteminstance
+            WHERE cm.visible = 1 AND gi.itemmodule = 'quiz' AND gi.courseid = :courseid AND gi.iteminstance = :iteminstance $sqlwhere
             ORDER BY gi.iteminstance, gg.finalgrade DESC, u.firstname, u.lastname;";
     $result = $DB->get_records_sql($sql, ['courseid' => $course->id,'iteminstance' => $cmid]);
 
