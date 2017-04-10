@@ -46,16 +46,17 @@ class local_desempenho_renderer extends plugin_renderer_base
                 }
             }
             if ($this->course) {
+                $title = $this->course->fullname;
                 $data1 = $this->indicator_grade_quiz($this->course);
                 $output = '';
                 if ($data1) {
-                    $output .= $this->get_chart('bar', $data);
+                    $output .= $this->get_chart('bar', $data1);
                 }
                 $data2 = $this->indicator_grade_quiz_average($this->course);
                 if ($data2) {
-                    $output .= $this->get_chart('line', $data);
+                    $output .= $this->get_chart('line', $data2);
                 }
-                $tabs['tabs'][] = array('name' => "gradequiz_line", 'displayname' => $data['title'], 'html' => $output, 'active' => $active);
+                $tabs['tabs'][] = array('name' => "gradequiz_line", 'displayname' => $title, 'html' => $output, 'active' => $active);
                 $active = false;
             }
 
@@ -69,9 +70,11 @@ class local_desempenho_renderer extends plugin_renderer_base
             }
 
             $data = $this->indicator_grade_quiz_average_simulado();
-            $chart = $this->get_chart('line', $data);
-            $tabs['tabs'][] = array('name' => "gradesimulado_line", 'displayname' => $data['title'], 'html' => $chart, 'active' => $active);
-            $active = false;
+            if ($data) {
+                $chart = $this->get_chart('line', $data);
+                $tabs['tabs'][] = array('name' => "gradesimulado_line", 'displayname' => $data['title'], 'html' => $chart, 'active' => $active);
+                $active = false;
+            }
 
             $content .= $OUTPUT->render_from_template('theme_boost/admin_setting_tabs', $tabs);
         }
@@ -96,6 +99,9 @@ class local_desempenho_renderer extends plugin_renderer_base
         $chart = new $class();
 
         $chart->set_title($data['title']);
+        if (!$data['labels']) {
+            return '';
+        }
         $chart->set_labels($data['labels']);
 
         if ($type == 'bar') {
