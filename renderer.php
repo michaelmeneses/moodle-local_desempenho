@@ -68,15 +68,6 @@ class local_desempenho_renderer extends plugin_renderer_base
                 $link = html_writer::link(new moodle_url('/local/desempenho/index.php', ['courseid' => $course->id]), $course->fullname);
                 $content .= html_writer::tag('h5', $link);
             }
-
-            $data = $this->indicator_grade_quiz_average_simulado();
-            if ($data) {
-                $chart = $this->get_chart('line', $data);
-                $tabs['tabs'][] = array('name' => "gradesimulado_line", 'displayname' => $data['title'], 'html' => $chart, 'active' => $active);
-                $active = false;
-            }
-
-            $content .= $OUTPUT->render_from_template('theme_boost/admin_setting_tabs', $tabs);
         }
 
         return html_writer::tag('div',$content, ['class' => 'desempenho']);

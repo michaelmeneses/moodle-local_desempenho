@@ -31,10 +31,4 @@ $ADMIN->add('localplugins', $settings);
 
 if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('local_desempenho/title', "Preencha os campos", "É necessário o correto preenchimento para o funcionamento do plugin."));
-
-    $name = 'local_desempenho/courseidsimulado';
-    $title = "Curso SIMULADO";
-    $description = '';
-    $setting = new admin_setting_configtext($name, $title, $description, '');
-    $settings->add($setting);
 }
