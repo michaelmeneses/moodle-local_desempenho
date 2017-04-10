@@ -125,7 +125,11 @@ function get_grade_quiz_average($course) {
 
         } else {
             $sum = $sumarray[$key];
-            $n = $sum / $meancount;
+            if ($meancount) {
+                $n = $sum / $meancount;
+            } else {
+                $n = null;
+            }
         }
         $media[] = number_format($n, 2);
     }
@@ -150,9 +154,10 @@ function get_grade_quiz_ranking($course) {
     if (!is_null($cms)) {
         foreach ($cms as $cm) {
             $aux = get_ranking_by_cm($course, $cm->instance);
+            $total = count($aux);
             foreach ($aux as $key => $value) {
                 if ($value->userid == $USER->id) {
-                    $data[$value->name] = array_search($key, array_keys($aux)) + 1;
+                    $data[$value->name] = ['user' => array_search($key, array_keys($aux)) + 1 , 'total' => $total];
                 }
             }
         }

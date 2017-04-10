@@ -147,7 +147,7 @@ class local_desempenho_renderer extends plugin_renderer_base
             $table->head = array("Questionário", "Posição");
             $table->data = array();
             foreach ($items as $key => $value) {
-                $v = is_null($value) ? '-' : $value."º";
+                $v = is_null($value['user']) ? '-' : $value['user']."º / ".$value['total'];
                 $row = [$key , $v];
                 $table->data[] = $row;
             }
@@ -185,7 +185,7 @@ class local_desempenho_renderer extends plugin_renderer_base
             $table->head = array("Questionário", "Posição");
             $table->data = array();
             foreach ($items as $key => $value) {
-                $v = is_null($value) ? '-' : $value."º";
+                $v = is_null($value['user']) ? '-' : $value['user']."º / ".$value['total'];
                 $row = [$key , $v];
                 $table->data[] = $row;
             }
