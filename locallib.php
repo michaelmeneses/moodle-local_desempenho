@@ -10,6 +10,8 @@ defined('MOODLE_INTERNAL') || die();
  * @license   UNIPRE {@link http://www.cursounipre.com.br}
  */
 
+require_once($CFG->libdir . '/grade/grade_item.php');
+
 function get_grade_quiz($course) {
     global $DB, $USER;
 
@@ -95,7 +97,6 @@ function get_grade_quiz_average($course) {
     // This query returns a count of ungraded grades (NULL finalgrade OR no matching record in grade_grades table)
     $sql = "SELECT gi.id, COUNT(DISTINCT u.id) AS count
                       FROM {grade_items} gi
-                      JOIN {course_modules} cm ON cm.instance = gi.iteminstance AND cm.module = (SELECT id FROM {modules} WHERE name like 'quiz')
                       CROSS JOIN {user} u
                       JOIN ($enrolledsql) je
                            ON je.id = u.id
@@ -104,34 +105,41 @@ function get_grade_quiz_average($course) {
                       LEFT OUTER JOIN {grade_grades} g
                            ON (g.itemid = gi.id AND g.userid = u.id AND g.finalgrade IS NOT NULL)
                      WHERE gi.courseid = :courseid
+                           AND ra.roleid $gradebookrolessql
+                           AND ra.contextid $relatedctxsql
                            AND u.deleted = 0
                            AND g.id IS NULL
-                           AND gi.itemtype like 'mod'
-                           AND gi.itemmodule like 'quiz'
-                           AND cm.visible = 1
                   GROUP BY gi.id";
     $ungradedcounts = $DB->get_records_sql($sql, $params);
 
     $media = array();
-    foreach ($ungradedcounts as $key => $value) {
-        if (empty($sumarray[$key])) {
-            $sum = 0;
-        } else {
-            $sum = $sumarray[$key];
-        }
-        $meancount = $totalusers - $value->count;
-        if (!isset($sumarray[$key]) || $sum == 0) {
-            $n = 0;
+    $sql = "SELECT gi.id FROM {grade_items} gi 
+            JOIN {course_modules} cm
+             ON cm.instance = gi.iteminstance AND cm.module = (SELECT id FROM {modules} WHERE name like 'quiz') AND gi.itemmodule = (SELECT name FROM {modules} WHERE name like 'quiz')
+            WHERE gi.courseid = :courseid
+            AND cm.visible = 1";
+    $gradeitems = $DB->get_records_sql($sql, ['courseid' => $course->id]);
 
-        } else {
-            $sum = $sumarray[$key];
-            if ($meancount) {
-                $n = $sum / $meancount;
-            } else {
-                $n = null;
-            }
+    foreach ($gradeitems as $itemid => $unused) {
+        if (!isset($sumarray[$itemid])) {
+            $sumarray[$itemid] = 0;
         }
-        $media[] = number_format($n, 2);
+
+        if (empty($ungradedcounts[$itemid])) {
+            $ungradedcount = 0;
+        } else {
+            $ungradedcount = $ungradedcounts[$itemid]->count;
+        }
+
+        $meancount = $totalusers - $ungradedcount;
+
+        if (!isset($sumarray[$itemid]) || $meancount == 0) {
+            $media[] = number_format(0, 2);
+        } else {
+            $sum = $sumarray[$itemid];
+            $avgradeval = $sum/$meancount;
+            $media[] = number_format($avgradeval, 2);
+        }
     }
     $items[get_string('classaverage', 'local_desempenho')] = $media;
 
