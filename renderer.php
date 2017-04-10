@@ -32,20 +32,11 @@ class local_desempenho_renderer extends plugin_renderer_base
         global $OUTPUT;
 
         $content = '';
-        $courseidsimulado = get_config('local_desempenho', 'courseidsimulado');
 
         $tabs = array();
         $active = true;
         if ($this->course) {
-            if ($this->course->id != $courseidsimulado) {
-                $data = $this->indicator_grade_quiz_average_simulado();
-                if ($data) {
-                    $chart = $this->get_chart('line', $data);
-                    $tabs['tabs'][] = array('name' => "gradesimulado_line", 'displayname' => $data['title'], 'html' => $chart, 'active' => $active);
-                    $active = false;
-                }
-            }
-            if ($this->course) {
+            if ($this->course->id) {
                 $title = $this->course->fullname;
                 $data1 = $this->indicator_grade_quiz($this->course);
                 $output = '';
@@ -127,38 +118,6 @@ class local_desempenho_renderer extends plugin_renderer_base
         $output .= $OUTPUT->render($chart, false);
 
         return html_writer::tag('div', $output, ['class' => 'desempenho_chart']);
-    }
-
-    function indicator_grade_quiz_average_simulado()
-    {
-        $courseid = get_config('local_desempenho', 'courseidsimulado');
-        if ($courseid) {
-            $course = get_course($courseid);
-        } else {
-            $course = $this->course;
-        }
-
-        $data = array();
-        $data['title'] = $course->fullname;
-        $data['info'] = html_writer::tag('p', "Esse indicador apresenta resultados dos questionários do curso ". $course->fullname.".");
-        if ($items = get_grade_quiz_ranking($course)) {
-            $data['info'] .= html_writer::tag('h4', "RANKING");
-            $table = new html_table();
-            $table->head = array("Questionário", "Posição");
-            $table->data = array();
-            foreach ($items as $key => $value) {
-                $v = is_null($value['user']) ? '-' : $value['user']."º / ".$value['total'];
-                $row = [$key , $v];
-                $table->data[] = $row;
-            }
-            $data['info'] .= html_writer::table($table);
-        }
-
-        $result = get_grade_quiz_average($course);
-        $data['labels'] = $result['labels'];
-        $data['series'] = $result['series'];
-
-        return $data;
     }
 
     function indicator_grade_quiz_average($course)
