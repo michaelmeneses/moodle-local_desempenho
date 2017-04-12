@@ -75,18 +75,22 @@ function get_grade_quiz_average($course) {
     $totalusers = count($selectedusers);
 
     // Find sums of all grade items in course.
-    $sql = "SELECT g.itemid, SUM(g.finalgrade) AS sum, gi.grademax as grademax
-            FROM {grade_items} gi
-            JOIN {grade_grades} g ON g.itemid = gi.id
-            JOIN {user} u ON u.id = g.userid
-            JOIN {course_modules} cm ON cm.instance = gi.iteminstance AND cm.module = (SELECT id FROM {modules} WHERE name like 'quiz')
-            WHERE gi.courseid = :courseid
-              AND u.deleted = 0
-              AND g.finalgrade IS NOT NULL
-              AND gi.itemtype like 'mod'
-              AND gi.itemmodule like 'quiz'
-              AND cm.visible = 1
-              GROUP BY g.itemid";
+    $sql = "SELECT g.itemid, SUM(g.finalgrade) AS sum
+                      FROM {grade_items} gi
+                      JOIN {grade_grades} g ON g.itemid = gi.id
+                      JOIN {user} u ON u.id = g.userid
+                      JOIN ($enrolledsql) je ON je.id = u.id
+                      JOIN (
+                               SELECT DISTINCT ra.userid
+                                 FROM {role_assignments} ra
+                                WHERE ra.roleid $gradebookrolessql
+                                  AND ra.contextid $relatedctxsql
+                           ) rainner ON rainner.userid = u.id
+                     WHERE gi.courseid = :courseid
+                       AND u.deleted = 0
+                       AND g.finalgrade IS NOT NULL
+                       AND g.finalgrade != 0
+                     GROUP BY g.itemid";
     $sumarray = array();
     if ($sums = $DB->get_records_sql($sql, $params)) {
         foreach ($sums as $itemid => $csum) {
@@ -103,7 +107,7 @@ function get_grade_quiz_average($course) {
                       JOIN {role_assignments} ra
                            ON ra.userid = u.id
                       LEFT OUTER JOIN {grade_grades} g
-                           ON (g.itemid = gi.id AND g.userid = u.id AND g.finalgrade IS NOT NULL)
+                           ON (g.itemid = gi.id AND g.userid = u.id AND g.finalgrade IS NOT NULL AND g.finalgrade != 0)
                      WHERE gi.courseid = :courseid
                            AND ra.roleid $gradebookrolessql
                            AND ra.contextid $relatedctxsql
